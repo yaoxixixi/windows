@@ -1,0 +1,39 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<windows.h>
+DWORD g_id;
+
+void __declspec(naked) IdtEntry() {
+	__asm {
+		mov eax,1
+		mov g_id,eax
+		iretd
+
+	}
+}
+void __declspec(naked) IdtEntry2() {
+	__asm {
+		mov eax, 2
+		mov g_id, eax
+		iretd
+
+	}
+}
+void go() {
+	__asm {
+		int 0x20;
+	}
+}
+
+
+int main() {
+	if ((DWORD)IdtEntry != 0x401040) {
+		printf("wrong addr: %p", IdtEntry);
+		printf("wrong addr: %p", IdtEntry2);
+		exit(-1);
+	}
+	go();
+	printf("%p\n", g_id);
+	system("pause");
+	return 0;
+}
