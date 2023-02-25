@@ -1,0 +1,35 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<windows.h>
+
+
+void __declspec(naked) IdtEntry() {
+	__asm {
+		mov eax,cr0
+		and eax,not 10000h
+		mov cr0,eax
+
+		mov eax ,0x12345678
+		mov ds:[80542520],eax
+L:		
+		jmp L
+		iretd
+
+	}
+}
+void go() {
+	__asm {
+		int 0x20;
+	}
+}
+
+
+int main() {
+	if ((DWORD)IdtEntry != 0x401040) {
+		printf("wrong addr: %p", IdtEntry);
+		exit(-1);
+	}
+	go();
+	system("pause");
+	return 0;
+}
