@@ -1,0 +1,47 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<windows.h>
+typedef DWORD(__stdcall *EX_ALLOCATE)(DWORD PoolType, DWORD NUmberOfBytes);
+EX_ALLOCATE ExAllocatePool = (EX_ALLOCATE)0x80537FF8;
+DWORD g_pool;
+//typedef DWORD(*DBG_PRINT)(char* Format, ...);
+//DBG_PRINT  DbgPrint = (DBG_PRINT)0x8052c862;
+//char str[] = "Hello Driver";
+
+void __declspec(naked) IdtEntry() {
+	__asm {
+		push 0x30
+		pop fs
+		sti
+	}
+		g_pool = ExAllocatePool(0, 4096);
+		
+		//DbgPrint(str);
+	__asm {
+		cli
+		push 0x3b
+		pop fs
+		iretd
+
+	}
+
+
+	
+}
+void go() {
+	__asm {
+		int 0x20;
+	}
+}
+
+
+int main() {
+	if ((DWORD)IdtEntry != 0x401040) {
+		printf("wrong addr: %p", IdtEntry);
+		exit(-1);
+	}
+	go();
+	printf("%p\n", g_pool);
+	system("pause");
+	return 0;
+}
