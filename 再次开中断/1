@@ -1,0 +1,33 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<windows.h>
+DWORD g_eflags;
+
+void __declspec(naked) IdtEntry() {
+	__asm {
+		push 0x30
+		pop fs
+		sti
+Label :
+		jmp Label
+		iretd
+
+	}
+}
+void go() {
+	__asm {
+		int 0x20;
+	}
+}
+
+
+int main() {
+	if ((DWORD)IdtEntry != 0x401040) {
+		printf("wrong addr: %p", IdtEntry);
+		exit(-1);
+	}
+	go();
+	printf("%p\n", g_eflags);
+	system("pause");
+	return 0;
+}
