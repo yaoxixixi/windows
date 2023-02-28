@@ -1,0 +1,31 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<windows.h>
+DWORD g_esp[2];
+
+void __declspec(naked) IdtEntry() {
+	__asm {
+		mov [g_esp+4],esp
+		iretd
+
+	}
+}
+void go() {
+	__asm {
+		mov [g_esp],esp
+		int 0x20;
+	}
+}
+
+// eq 8003f500 0040ee00`00081040
+int main() {
+	if ((DWORD)IdtEntry != 0x401040) {
+		printf("wrong addr: %p", IdtEntry);
+		exit(-1);
+	}
+	go();
+	printf("%p\n", g_esp[0]);
+	printf("%p\n", g_esp[1]);
+	system("pause");
+	return 0;
+}
