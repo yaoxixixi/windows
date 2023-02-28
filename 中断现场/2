@@ -1,0 +1,81 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<windows.h>
+DWORD g_eax[2], g_ecx[2], g_edx[2], g_ebx[2];
+DWORD g_esp[2], g_ebp[2], g_esi[2], g_edi[2];
+WORD  g_cs[2], g_ds[2], g_ss[2],  g_es[2], g_fs[2],g_gs[2];
+void __declspec(naked) IdtEntry() {
+	__asm {
+		mov [g_eax+4],  eax
+		mov[g_ecx + 4], ecx
+		mov[g_edx + 4], edx
+		mov[g_ebx + 4], ebx
+		mov[g_esp + 4], esp
+		mov[g_ebp + 4], ebp
+		mov[g_esi + 4], esi
+		mov[g_edi + 4], edi
+
+		push eax
+
+		mov ax,cs
+		mov [g_cs+2],ax
+		mov ax, ds
+		mov[g_ds + 2], ax
+		mov ax, ss
+		mov[g_ss + 2], ax
+		mov ax, es
+		mov[g_es + 2], ax
+		mov ax, fs
+		mov[g_fs + 2], ax
+		mov ax, gs
+		mov[g_gs + 2], ax
+
+		pop eax
+		iretd
+
+	}
+}
+void go() {
+	__asm {
+		mov[g_eax ], eax
+		mov[g_ecx ], ecx
+		mov[g_edx ], edx
+		mov[g_ebx ], ebx
+		mov[g_esp ], esp
+		mov[g_ebp ], ebp
+		mov[g_esi ], esi
+		mov[g_edi ], edi
+		push eax
+
+		mov ax, cs
+		mov[g_cs], ax
+		mov ax, ds
+		mov[g_ds ], ax
+		mov ax, ss
+		mov[g_ss ], ax
+		mov ax, es
+		mov[g_es ], ax
+		mov ax, fs
+		mov[g_fs ], ax
+		mov ax, gs
+		mov[g_gs ], ax
+
+		pop eax
+		int 0x20
+	}
+}
+
+// eq 8003f500 0040ee00`00081040
+int main() {
+	if ((DWORD)IdtEntry != 0x401040) {
+		printf("wrong addr: %p", IdtEntry);
+		exit(-1);
+	}
+	go();
+	printf("%p %p %p %p %p %p %p %p\n", g_eax[0], g_ecx[0], g_edx[0], g_ebx[0], g_esp[0], g_ebp[0], g_esi[0], g_edi[0]);
+	printf("%p %p %p %p %p %p %p %p\n", g_eax[1], g_ecx[1], g_edx[1], g_ebx[1], g_esp[1], g_ebp[1], g_esi[1], g_edi[1]);
+	printf("%p %p %p %p %p %p\n", g_cs[0], g_ds[0], g_ss[0], g_es[0], g_fs[0], g_gs[0]);
+	printf("%p %p %p %p %p %p\n", g_cs[1], g_ds[1], g_ss[1], g_es[1], g_fs[1], g_gs[1]);
+	system("pause");
+	return 0;
+}
