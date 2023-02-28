@@ -1,0 +1,49 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<windows.h>
+//jmp:8003f120 >80542525
+void JmpTarget();
+int i;
+char* p;
+void __declspec(naked) IdtEntry() {
+	p = (char*)0x8003f120;//目标跳转地址
+	for (i = 0; i < 64; i++) {
+		*p = ((char*)JmpTarget)[i];
+		p++;
+	}
+	__asm {
+		iretd
+	}
+
+	
+}
+void __declspec(naked) JmpTarget() {
+	__asm {
+		mov ecx,0x23
+		push 0x30
+		pop fs
+		mov ds,cx
+		mov es,cx
+		mov ecx,0x8054252d
+		jmp ecx
+	}
+
+
+
+}
+void go() {
+	__asm {
+		int 0x20;
+	}
+}
+
+
+int main() {
+	if ((DWORD)IdtEntry != 0x401040) {
+		printf("wrong addr: %p", IdtEntry);
+		exit(-1);
+	}
+	go();
+	system("pause");
+	return 0;
+}
