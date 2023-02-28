@@ -1,0 +1,45 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<windows.h>
+//jmp:8003f120 >80542525
+void __declspec(naked) IdtEntry() {
+	__asm {
+		//可写权限
+		mov eax,cr0
+		and eax ,not 10000h
+		mov cr0,eax
+		
+		
+		//修改函数的起始位置为跳转
+		mov al,0xe9//jmp
+		mov ds:[0x80542520],al
+		mov eax,0xffafcbfb// 80542520>8003f120 ;0xffafcbfb=8003f120-80542520-5
+		mov ds:[0x80542521],eax
+
+		//还原之前的不可写环境
+		mov eax,cr0
+		or eax,10000h
+		mov cr0,eax
+		iretd
+	}
+
+
+
+}
+void go() {
+	__asm {
+		int 0x20;
+	}
+}
+
+
+int main() {
+	if ((DWORD)IdtEntry != 0x401040) {
+		printf("wrong addr: %p", IdtEntry);
+		exit(-1);
+	}
+	go();
+	//printf("%p\n", g_pool);
+	system("pause");
+	return 0;
+}
